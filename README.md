@@ -28,12 +28,24 @@ Etapa 3:
 - **Caso de uso:** funções Lambda executam as rotinas de segundo plano da farmácia. Quando um cliente envia uma receita para o S3, uma função é disparada para validar o arquivo, gerar uma miniatura e avisar o farmacêutico responsável. Quando um pedido é confirmado, outra função envia o e-mail de confirmação e atualiza o estoque. Uma função agendada pelo Amazon EventBridge verifica todas as noites os produtos com estoque baixo ou perto do vencimento. A cobrança é feita por requisição e por milissegundo de execução, e o nível gratuito inclui 1 milhão de requisições por mês, então essas rotinas custam quase nada em comparação com uma instância dedicada a elas.
 
 ## Conclusão
-A implementação de ferramentas na empresa *Abstergo Industries tem como esperado a redução imediata dos custos de infraestrutura, eliminando o pagamento por servidores ociosos (EC2 com Auto Scaling e Savings Plans), por armazenamento caro de arquivos pouco acessados (S3 Intelligent-Tiering e Glacier) e por máquinas dedicadas a tarefas eventuais (AWS Lambda), além de maior escalabilidade e disponibilidade da plataforma da Farmácia Abstergo em períodos de pico*, o que aumentará a eficiência e a produtividade da empresa. Recomenda-se a continuidade da utilização das ferramentas implementadas e a busca por novas tecnologias que possam melhorar ainda mais os processos da empresa. Como próximos passos, sugere-se configurar o **AWS Budgets** e o **AWS Cost Explorer** para acompanhar os gastos mensais e emitir alertas, e avaliar o **Amazon RDS** ou o **Amazon DynamoDB** para o banco de dados de produtos e pedidos.
+A implementação de ferramentas na empresa Abstergo Industries tem como esperado a redução imediata dos custos de infraestrutura, eliminando o pagamento por servidores ociosos (EC2 com Auto Scaling e Savings Plans), por armazenamento caro de arquivos pouco acessados (S3 Intelligent-Tiering e Glacier) e por máquinas dedicadas a tarefas eventuais (AWS Lambda), além de maior escalabilidade e disponibilidade da plataforma da Farmácia Abstergo em períodos de pico, o que aumentará a eficiência e a produtividade da empresa. Recomenda-se a continuidade da utilização das ferramentas implementadas e a busca por novas tecnologias que possam melhorar ainda mais os processos da empresa. Como próximos passos, sugere-se configurar o **AWS Budgets** e o **AWS Cost Explorer** para acompanhar os gastos mensais e emitir alertas, e avaliar o **Amazon RDS** ou o **Amazon DynamoDB** para o banco de dados de produtos e pedidos.
 
-## Anexos
+## Arquitetura da solução
 
-- Diagrama da arquitetura da plataforma (Application Load Balancer → EC2 Auto Scaling → S3 / Lambda)
-- Planilha de estimativa de custos gerada na [AWS Pricing Calculator](https://calculator.aws/)
+```mermaid
+flowchart LR
+    C[Clientes] --> ALB[Application Load Balancer]
+    ALB --> EC2[EC2 Auto Scaling<br/>loja virtual e checkout]
+    EC2 --> S3[(Amazon S3<br/>imagens, receitas e notas)]
+    S3 -- envio de receita --> L1[Lambda<br/>valida receita e avisa farmacêutico]
+    EC2 -- pedido confirmado --> L2[Lambda<br/>e-mail e atualização de estoque]
+    EB[EventBridge<br/>agendamento noturno] --> L3[Lambda<br/>estoque baixo e vencimentos]
+    S3 -- após 1 ano --> G[(S3 Glacier<br/>Deep Archive)]
+```
+
+## Referências
+
+- Estimativas de custo podem ser simuladas na [AWS Pricing Calculator](https://calculator.aws/)
 - Documentação oficial do [Amazon EC2 Auto Scaling](https://docs.aws.amazon.com/autoscaling/)
 - Documentação oficial do [Savings Plans](https://docs.aws.amazon.com/savingsplans/)
 - Documentação oficial das [classes de armazenamento do Amazon S3](https://aws.amazon.com/s3/storage-classes/)
